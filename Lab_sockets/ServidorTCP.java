@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServidorTCP {
-    private static final int PUERTO = 8080;
+    private static final int PUERTO = 5000;
     private static final int MAX_HILOS = 50;
 
     public static void main(String[] args) {
@@ -21,7 +21,7 @@ public class ServidorTCP {
                 // accept() bloquea hasta que arriba una nueva conexión TCP
                 Socket clienteSocket = serverSocket.accept();
                 System.out.println("Conexión entrante desde: " + clienteSocket.getRemoteSocketAddress());
-                
+
                 // Despacho del trabajo al pool de hilos
                 pool.execute(new ManejadorCliente(clienteSocket));
             }
@@ -41,15 +41,14 @@ public class ServidorTCP {
 
         @Override
         public void run() {
-            // Uso de try-with-resources para garantizar el cierre seguro de streams y socket
+            // Uso de try-with-resources para garantizar el cierre seguro de streams y
+            // socket
             try (
-                BufferedReader lector = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream())
-                );
-                PrintWriter escritor = new PrintWriter(
-                    socket.getOutputStream(), true // autoflush habilitado
-                )
-            ) {
+                    BufferedReader lector = new BufferedReader(
+                            new InputStreamReader(socket.getInputStream()));
+                    PrintWriter escritor = new PrintWriter(
+                            socket.getOutputStream(), true // autoflush habilitado
+                    )) {
                 String lineaEntrada;
                 while ((lineaEntrada = lector.readLine()) != null) {
                     String comando = lineaEntrada.trim();
@@ -58,10 +57,10 @@ public class ServidorTCP {
                         break;
                     }
                     System.out.println("Recibido [" + socket.getPort() + "]: " + lineaEntrada);
-                    
+
                     // LÓGICA DE AUDITORÍA Y CONTROL
-                    if ("STATUS".equalsIgnoreCase(comando)) {   
-                         escritor.println("ACK: OK");
+                    if ("STATUS".equalsIgnoreCase(comando)) {
+                        escritor.println("ACK: OK");
                     } else if ("CALIBRATE".equalsIgnoreCase(comando)) {
                         escritor.println("ACK: OK");
                     } else {
