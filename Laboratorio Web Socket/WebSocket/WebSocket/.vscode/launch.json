@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Ejecutar Main3 (Chat + Lista de Presencia)",
+            "request": "launch",
+            "mainClass": "cl.laboratorio.websocket.Main3",
+            "projectName": "WEBSOCKET"
+        },
+        {
+            "type": "java",
+            "name": "Ejecutar Servidor WebSocket (Main)",
+            "request": "launch",
+            "mainClass": "cl.laboratorio.websocket.Main",
+            "projectName": "WEBSOCKET"
+        }
+    ]
+}

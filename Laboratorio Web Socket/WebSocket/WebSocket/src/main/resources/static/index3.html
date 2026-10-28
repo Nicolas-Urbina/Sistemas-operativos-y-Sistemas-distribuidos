@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Laboratorio WebSockets - Identificación</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .panel {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #chatSection {
+            display: none;
+        }
+
+        /* Layout de dos columnas: Chat principal + Panel lateral */
+        .chat-layout {
+            display: flex;
+            gap: 16px;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-sidebar {
+            width: 220px;
+            background: #f7f9fa;
+            border: 1px solid #dcdcdc;
+            border-radius: 6px;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        .chat-sidebar h4 {
+            margin: 0 0 10px 0;
+            font-size: 0.95rem;
+            color: #333;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 4px;
+        }
+
+        #listaUsuarios {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 270px;
+            overflow-y: auto;
+        }
+
+        #listaUsuarios li {
+            padding: 6px 8px;
+            margin-bottom: 5px;
+            background: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .punto-conectado {
+            width: 8px;
+            height: 8px;
+            background-color: #28a745;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        #registro {
+            list-style-type: none;
+            padding: 0;
+            max-height: 320px;
+            min-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 8px;
+            background: #fafafa;
+            margin: 0;
+        }
+
+        #registro li {
+            padding: 4px 6px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
+        }
+
+        .sistema {
+            color: #666;
+            font-style: italic;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 1rem;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0052a3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Chat con Registro de Usuario</h2>
+
+    <!-- Pantalla 1: Ingreso de Nombre -->
+    <div id="loginSection" class="panel">
+        <label for="inputNombre"><strong>Ingresa tu nombre para entrar al chat:</strong></label><br><br>
+        <input type="text" id="inputNombre" placeholder="Tu nombre o alias..." style="width: 70%;" autofocus />
+        <button onclick="conectarAlChat()">Entrar</button>
+    </div>
+
+    <!-- Pantalla 2: Interfaz del Chat (Oculta al inicio) -->
+    <div id="chatSection" class="panel">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>Usuario conectado: <strong id="lblUsuario"></strong></div>
+            <button onclick="desconectar()" style="background-color: #cc3300;">Salir</button>
+        </div>
+        <hr style="margin: 1rem 0; border: none; border-top: 1px solid #ddd;">
+
+        <!-- Opción 2: Layout con panel lateral de presencia activa -->
+        <div class="chat-layout">
+            <div class="chat-main">
+                <ul id="registro"></ul>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <input type="text" id="campoMensaje" placeholder="Escribe un mensaje..." style="flex-grow: 1;" />
+                    <button onclick="enviarMensaje()">Enviar</button>
+                </div>
+            </div>
+
+            <!-- Panel lateral con lista de participantes conectados -->
+            <div class="chat-sidebar">
+                <h4>Conectados</h4>
+                <ul id="listaUsuarios"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let nombreUsuario = "";
+
+        function conectarAlChat() {
+            const input = document.getElementById("inputNombre");
+            nombreUsuario = input.value.trim();
+
+            if (!nombreUsuario) {
+                alert("Por favor ingresa un nombre válido.");
+                return;
+            }
+
+            // Construir URL con el parámetro ?nombre= apuntando al puerto 8081
+            const wsUri = "ws://localhost:8081/ws/chat?nombre=" + encodeURIComponent(nombreUsuario);
+            socket = new WebSocket(wsUri);
+
+            socket.onopen = () => {
+                document.getElementById("loginSection").style.display = "none";
+                document.getElementById("chatSection").style.display = "block";
+                document.getElementById("lblUsuario").textContent = nombreUsuario;
+                document.getElementById("campoMensaje").focus();
+            };
+
+            socket.onmessage = (evento) => {
+                let mensaje = evento.data;
+
+                // Opción 2: Verificamos si es el mensaje de control con la lista de usuarios
+                if (mensaje.startsWith("{\"tipo\":\"LISTA_USUARIOS\"")) {
+                    let datos = JSON.parse(mensaje);
+                    let lista = document.getElementById("listaUsuarios");
+                    lista.innerHTML = ""; // Limpiamos la lista actual
+
+                    // Bucle tradicional para recorrer el arreglo de usuarios conectados
+                    for (let i = 0; i < datos.usuarios.length; i++) {
+                        let li = document.createElement("li");
+
+                        let punto = document.createElement("span");
+                        punto.className = "punto-conectado";
+
+                        let nombre = document.createTextNode(datos.usuarios[i]);
+
+                        li.appendChild(punto);
+                        li.appendChild(nombre);
+                        lista.appendChild(li);
+                    }
+                } else {
+                    // Mensajes regulares de chat y notificaciones del sistema
+                    agregarLog(mensaje);
+                }
+            };
+
+            socket.onclose = () => {
+                agregarLog("[Sistema]: Conexión cerrada.");
+                document.getElementById("listaUsuarios").innerHTML = "";
+            };
+
+            socket.onerror = (err) => {
+                console.error("Error WebSocket:", err);
+                alert("No se pudo conectar al servidor WebSocket en el puerto 8081.");
+            };
+        }
+
+        function enviarMensaje() {
+            const input = document.getElementById("campoMensaje");
+            if (socket && socket.readyState === WebSocket.OPEN && input.value.trim() !== "") {
+                socket.send(input.value);
+                input.value = "";
+                input.focus();
+            }
+        }
+
+        function desconectar() {
+            if (socket) {
+                socket.close();
+            }
+            document.getElementById("chatSection").style.display = "none";
+            document.getElementById("loginSection").style.display = "block";
+            document.getElementById("registro").innerHTML = "";
+            document.getElementById("listaUsuarios").innerHTML = "";
+        }
+
+        function agregarLog(texto) {
+            const li = document.createElement("li");
+            li.textContent = texto;
+            if (texto.startsWith("[Sistema]")) {
+                li.className = "sistema";
+            }
+            const reg = document.getElementById("registro");
+            reg.appendChild(li);
+            reg.scrollTop = reg.scrollHeight; // Auto-scroll al último mensaje
+        }
+
+        // Enviar al presionar ENTER
+        document.getElementById("inputNombre").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") conectarAlChat();
+        });
+        document.getElementById("campoMensaje").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") enviarMensaje();
+        });
+    </script>
+</body>
+
+</html>

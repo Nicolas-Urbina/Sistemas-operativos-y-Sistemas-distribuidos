@@ -1,0 +1,4 @@
+<!-- Compilar y ejecutar el proyecto -->
+<!-- En la terminal: mvn clean compile exec:java -->
+<!-- Para ver las otras versiones del proyecto, se debe modificar la línea 50, con Main2 o Main3-->
+<!-- Luego de eso.. volver a compilar -->
