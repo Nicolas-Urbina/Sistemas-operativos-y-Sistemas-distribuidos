@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat WebSocket - Protocolo JSON</title>
+    <style>
+        body { font-family: sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .panel { border: 1px solid #ccc; border-radius: 8px; padding: 1.5rem; }
+        #chat { display: none; }
+        .layout { display: flex; gap: 1rem; }
+        main { flex: 1; }
+        aside { width: 220px; background: #f7f9fa; padding: 1rem; }
+        ul { list-style: none; padding: 0; }
+        #registro { min-height: 280px; max-height: 420px; overflow-y: auto; border: 1px solid #ddd; padding: .5rem; }
+        #registro li { padding: .35rem; border-bottom: 1px solid #eee; }
+        .privado { color: #7a2ca3; }
+        .sistema { color: #666; font-style: italic; }
+        input { padding: .6rem; font-size: 1rem; }
+        button { padding: .6rem 1rem; background: #0666cc; color: white; border: 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h2>Chat con protocolo JSON</h2>
+    <div id="login" class="panel">
+        <label for="nombre">Nombre de usuario:</label>
+        <input id="nombre" placeholder="pedro" autofocus>
+        <button onclick="conectar()">Entrar</button>
+    </div>
+    <div id="chat" class="panel">
+        <p>Conectado como <strong id="usuario"></strong>. Usa <code>@usuario mensaje</code> para un privado.</p>
+        <div class="layout">
+            <main>
+                <ul id="registro"></ul>
+                <input id="mensaje" style="width: 70%" placeholder="hola o @pedro hola">
+                <button onclick="enviar()">Enviar</button>
+            </main>
+            <aside><strong>Usuarios conectados</strong><ul id="usuarios"></ul></aside>
+        </div>
+        <br><button onclick="socket.close()">Salir</button>
+    </div>
+    <script>
+        let socket;
+        let nombre;
+        function conectar() {
+            nombre = document.getElementById("nombre").value.trim();
+            if (!nombre) return alert("Ingresa un nombre.");
+            socket = new WebSocket("ws://localhost:8083/ws/chat-json?nombre=" + encodeURIComponent(nombre));
+            socket.onopen = () => {
+                login.style.display = "none";
+                chat.style.display = "block";
+                usuario.textContent = nombre;
+                mensaje.focus();
+            };
+            socket.onmessage = evento => {
+                const trama = JSON.parse(evento.data);
+                if (trama.tipo === "LISTA_USUARIOS") {
+                    usuarios.innerHTML = trama.usuarios.map(u => "<li>● " + escapar(u) + "</li>").join("");
+                } else {
+                    agregar(trama);
+                }
+            };
+            socket.onclose = () => agregar({ tipo: "ERROR", mensaje: "Conexión cerrada." });
+        }
+        function enviar() {
+            const texto = mensaje.value.trim();
+            if (!texto || !socket || socket.readyState !== WebSocket.OPEN) return;
+            socket.send(JSON.stringify({ tipo: "PUBLICO", origen: nombre, destino: null, mensaje: texto }));
+            mensaje.value = "";
+        }
+        function agregar(trama) {
+            const li = document.createElement("li");
+            li.className = trama.tipo === "PRIVADO" ? "privado" : (trama.tipo === "ERROR" ? "sistema" : "");
+            const prefijo = trama.tipo === "PRIVADO" ? "[Privado] " : "";
+            li.textContent = prefijo + (trama.origen ? trama.origen + ": " : "") + (trama.mensaje || "");
+            registro.appendChild(li);
+            registro.scrollTop = registro.scrollHeight;
+        }
+        function escapar(valor) {
+            const div = document.createElement("div");
+            div.textContent = valor;
+            return div.innerHTML;
+        }
+        document.getElementById("mensaje").addEventListener("keydown", e => { if (e.key === "Enter") enviar(); });
+    </script>
+</body>
+</html>

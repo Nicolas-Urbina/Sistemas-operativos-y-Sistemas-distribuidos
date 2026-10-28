@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Ejecutar Main4 (Mensajería JSON)",
+            "request": "launch",
+            "mainClass": "cl.laboratorio.websocket.Main4",
+            "projectName": "WEBSOCKET"
+        },
+        {
+            "type": "java",
             "name": "Ejecutar Main3 (Chat + Lista de Presencia)",
             "request": "launch",
             "mainClass": "cl.laboratorio.websocket.Main3",
