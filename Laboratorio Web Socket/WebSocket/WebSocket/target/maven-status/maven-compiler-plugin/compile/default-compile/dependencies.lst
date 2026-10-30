@@ -1,3 +1,6 @@
+classpath:C:\Users\Calia\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.17.2\jackson-databind-2.17.2.jar	1649454:1793226048383
+classpath:C:\Users\Calia\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.17.2\jackson-annotations-2.17.2.jar	78492:1793226048465
+classpath:C:\Users\Calia\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.17.2\jackson-core-2.17.2.jar	581927:1793226048859
 classpath:C:\Users\Calia\.m2\repository\jakarta\websocket\jakarta.websocket-api\2.1.1\jakarta.websocket-api-2.1.1.jar	23856:1793222045762
 classpath:C:\Users\Calia\.m2\repository\org\glassfish\tyrus\tyrus-server\2.1.4\tyrus-server-2.1.4.jar	26607:1793222046185
 classpath:C:\Users\Calia\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.1\jakarta.xml.bind-api-4.0.1.jar	130002:1793222045832
