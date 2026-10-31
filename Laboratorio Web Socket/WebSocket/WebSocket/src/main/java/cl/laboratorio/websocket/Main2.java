@@ -29,7 +29,7 @@ public class Main2 {
         config.addHttpHandler(staticHandler, "/");
 
         // 2. Servidor WebSocket Tyrus en el puerto 8081
-        Server tyrusServer = new Server(HOST, PUERTO_WS, "/", null, ChatWebSocketServer.class);
+        Server tyrusServer = new Server(HOST, PUERTO_WS, "/", null, ChatWebSocketServer2.class);
 
         try {
             httpServer.start();

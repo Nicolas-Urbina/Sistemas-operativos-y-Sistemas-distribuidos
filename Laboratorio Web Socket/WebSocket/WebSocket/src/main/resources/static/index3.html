@@ -177,8 +177,8 @@
                 return;
             }
 
-            // Construir URL con el parámetro ?nombre= apuntando al puerto 8081
-            const wsUri = "ws://localhost:8081/ws/chat?nombre=" + encodeURIComponent(nombreUsuario);
+            // Construir URL con el parámetro ?nombre= apuntando al puerto 8085
+            const wsUri = "ws://localhost:8085/ws/chat?nombre=" + encodeURIComponent(nombreUsuario);
             socket = new WebSocket(wsUri);
 
             socket.onopen = () => {
@@ -223,7 +223,7 @@
 
             socket.onerror = (err) => {
                 console.error("Error WebSocket:", err);
-                alert("No se pudo conectar al servidor WebSocket en el puerto 8081.");
+                alert("No se pudo conectar al servidor WebSocket en el puerto 8085.");
             };
         }
 
